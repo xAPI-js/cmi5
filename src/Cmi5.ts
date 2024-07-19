@@ -74,6 +74,10 @@ export default class Cmi5 {
     Cmi5._instance = null;
   }
 
+  static get xapi(): XAPI | null {
+    return Cmi5.instance.xapi;
+  }
+
   constructor() {
     this.launchParameters = this.getLaunchParametersFromLMS();
     if (!this.launchParameters.fetch) {
@@ -109,6 +113,10 @@ export default class Cmi5 {
         p.get("registration") &&
         p.get("activityId")
     );
+  }
+
+  public get xapi(): XAPI | null {
+    return this._xapi;
   }
 
   public get isAuthenticated(): boolean {
