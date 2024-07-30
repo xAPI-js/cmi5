@@ -1,3 +1,10 @@
+# 1.3.3 (30 Jul 2024)
+
+- Updated `follow-redirects` to patch security vulnerability
+- Updated `braces` to patch security vulnerability
+- Updated `ws` to patch security vulnerability
+- Removed `babel-plugin-transform-class-properties` to patch security vulnerability
+
 # 1.3.2 (13 Jan 2024)
 
 - Bumped dependencies
