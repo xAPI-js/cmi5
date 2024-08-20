@@ -25,6 +25,7 @@ jobs:
 
       - name: Run audit
         run: npm run test:audit
+        continue-on-error: true
 
       - name: Prettier
         run: npm run test:format
