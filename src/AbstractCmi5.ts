@@ -28,6 +28,7 @@ import { Cmi5DefinedVerbs, Cmi5ContextActivity } from "./constants";
 import { default as deepmerge } from "deepmerge";
 import axios, { AxiosPromise, AxiosResponse } from "axios";
 import { v4 as uuidv4 } from "uuid";
+import { Cmi5InteractionStatement, Cmi5ProgressStatement } from "Cmi5Statements";
 
 export * from "./interfaces";
 
@@ -135,50 +136,30 @@ export default class AbstractCmi5 {
   }
 
   // "cmi5 defined" Statements
-  public initialize(sessionState?: {
+  public async initialize(sessionState?: {
     authToken: string;
     initializedDate: Date;
   }): AxiosPromise<string[] | void> {
-    return Promise.resolve()
-      .then(() => {
-        // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-        if (sessionState) return sessionState.authToken;
-        return this.getAuthTokenFromLMS(this.launchParameters.fetch).then(
-          (response) => {
-            const authToken: string = response.data["auth-token"];
-            return authToken;
-          }
-        );
-      })
-      .then((authToken) => {
-        this.authToken = authToken;
-        this._xapi = new XAPI({
-          endpoint: this.launchParameters.endpoint,
-          auth: `Basic ${authToken}`,
-        });
-        return this.getLaunchDataFromLMS();
-      })
-      .then((result) => {
-        this.launchData = result.data;
-      })
-      .then(() => {
-        return this.getLearnerPreferencesFromLMS();
-      })
-      .then((result) => {
-        this.learnerPreferences = result.data || {};
-      })
-      .then(() => {
-        if (sessionState) {
-          // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-          this.initializedDate = sessionState.initializedDate;
-        } else {
-          this.initializedDate = new Date();
-          // 9.3.2 Initialized - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#932-initialized
-          return this.sendCmi5DefinedStatement({
-            verb: Cmi5DefinedVerbs.INITIALIZED,
-          });
-        }
+    // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
+    const authToken = sessionState ? sessionState.authToken : (await this.getAuthTokenFromLMS(this.launchParameters.fetch));
+    this.authToken = authToken;
+    this._xapi = new XAPI({
+      endpoint: this.launchParameters.endpoint,
+      auth: `Basic ${authToken}`,
+    });
+    this.launchData = await this.getLaunchDataFromLMS();
+    this.learnerPreferences = await this.getLearnerPreferencesFromLMS();
+
+    if (sessionState) {
+      // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
+      this.initializedDate = sessionState.initializedDate;
+    } else {
+      this.initializedDate = new Date();
+      // 9.3.2 Initialized - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#932-initialized
+      return this.sendCmi5DefinedStatement({
+        verb: Cmi5DefinedVerbs.INITIALIZED,
       });
+    }
   }
 
   public complete(options?: SendStatementOptions): AxiosPromise<string[]> {
@@ -343,18 +324,8 @@ export default class AbstractCmi5 {
 
   // "cmi5 allowed" Statements
   public progress(percent: number): AxiosPromise<string[]> {
-    return this.sendCmi5AllowedStatement({
-      verb: XAPI.Verbs.PROGRESSED,
-      object: {
-        objectType: "Activity",
-        id: this.launchParameters.activityId,
-      },
-      result: {
-        extensions: {
-          "https://w3id.org/xapi/cmi5/result/extensions/progress": percent,
-        },
-      },
-    });
+    const statement = Cmi5ProgressStatement(this.launchParameters, percent);
+    return this.sendCmi5AllowedStatement(statement);
   }
 
   public interactionTrueFalse(
@@ -709,37 +680,17 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    return this.sendCmi5AllowedStatement({
-      verb: XAPI.Verbs.ANSWERED,
-      result: {
-        response: response,
-        ...(duration
-          ? {
-              duration: XAPI.calculateISO8601Duration(
-                duration.start,
-                duration.end
-              ),
-            }
-          : {}),
-        ...(typeof success === "boolean" ? { success } : {}),
-      },
-      object: {
-        objectType: "Activity",
-        // Best Practice #16 - AU should use a derived activity ID for “cmi.interaction” statements - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-        id: `${this.launchParameters.activityId}/test/${testId}/question/${questionId}`,
-        definition: interactionDefinition,
-      },
-      // Best Practice #1 - Use of Objectives - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-      ...(objective
-        ? {
-            context: {
-              contextActivities: {
-                parent: [objective],
-              },
-            },
-          }
-        : {}),
-    });
+    const statement = Cmi5InteractionStatement(
+      this.launchParameters,
+      testId,
+      questionId,
+      response,
+      interactionDefinition,
+      success,
+      duration,
+      objective
+    );
+    return this.sendCmi5AllowedStatement(statement);
   }
 
   private setResultScore(resultScore: ResultScore, s: Statement): Statement {
@@ -808,38 +759,36 @@ export default class AbstractCmi5 {
     toIds.push.apply(toIds, response.data);
   }
 
-  private getAuthTokenFromLMS(
+  private async getAuthTokenFromLMS(
     fetchUrl: string
-  ): AxiosPromise<AuthTokenResponse> {
-    return axios.post<AuthTokenResponse>(fetchUrl);
+  ): Promise<string> {
+    const response = await axios.post<AuthTokenResponse>(fetchUrl);
+    return response.data["auth-token"];
   }
 
-  private getLaunchDataFromLMS(): AxiosPromise<LaunchData> {
-    return this._xapi.getState({
+  private async getLaunchDataFromLMS(): Promise<LaunchData> {
+    const launchDataResponse = await (this._xapi.getState({
       agent: this.launchParameters.actor,
       activityId: this.launchParameters.activityId,
       stateId: "LMS.LaunchData",
       registration: this.launchParameters.registration,
-    }) as AxiosPromise<LaunchData>;
+    }) as AxiosPromise<LaunchData>);
+    return launchDataResponse.data
   }
 
-  private getLearnerPreferencesFromLMS(): AxiosPromise<LearnerPreferences> {
-    return this._xapi
-      .getAgentProfile({
+  private async getLearnerPreferencesFromLMS(): Promise<LearnerPreferences> {
+    try {
+      const learnerPrefResponse = await (this._xapi.getAgentProfile({
         agent: this.launchParameters.actor,
         profileId: "cmi5LearnerPreferences",
-      })
-      .then(
-        (result) => {
-          return result.data;
-        },
-        () => {
-          return {};
-        }
-      ) as AxiosPromise<LearnerPreferences>;
+      }) as AxiosPromise<LearnerPreferences>);
+      return learnerPrefResponse.data;
+    } catch(err) {
+      return {};
+    }
   }
 
-  private sendCmi5DefinedStatement(
+  private async sendCmi5DefinedStatement(
     statement: Partial<Statement>,
     options?: SendStatementOptions
   ): AxiosPromise<string[]> {
@@ -867,7 +816,7 @@ export default class AbstractCmi5 {
     return this.sendCmi5AllowedStatement(mergedStatement, options);
   }
 
-  public sendCmi5AllowedStatement(
+  public async sendCmi5AllowedStatement(
     statement: Partial<Statement>,
     options?: SendStatementOptions
   ): AxiosPromise<string[]> {
