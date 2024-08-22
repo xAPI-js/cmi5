@@ -35,10 +35,10 @@ export default class Cmi5 extends AbstractCmi5 {
     return Boolean(
       // true if has all required cmi5 query params
       p.get("fetch") &&
-      p.get("endpoint") &&
-      p.get("actor") &&
-      p.get("registration") &&
-      p.get("activityId")
+        p.get("endpoint") &&
+        p.get("actor") &&
+        p.get("registration") &&
+        p.get("activityId")
     );
   }
 

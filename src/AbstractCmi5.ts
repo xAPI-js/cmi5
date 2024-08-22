@@ -50,6 +50,29 @@ function _toResultScore(s?: ResultScore | number): ResultScore | undefined {
     : (s as ResultScore);
 }
 
+function isNumericExact(candidate: unknown): candidate is NumericExact {
+  return typeof candidate === "object" && "exact" in candidate;
+}
+
+function isNumericRange(candidate: unknown): candidate is NumericRange {
+  return (
+    typeof candidate === "object" && "min" in candidate && "max" in candidate
+  );
+}
+
+function numericCriteriaToString(
+  criteria: NumericExact | NumericRange | unknown
+) {
+  if (isNumericExact(criteria)) {
+    return String(criteria.exact);
+  } else if (isNumericRange(criteria)) {
+    const { min, max } = criteria;
+    return `${min}:${max}`;
+  } else {
+    return ":";
+  }
+}
+
 /**
  * Experience API cmi5 Profile (Quartz - 1st Edition)
  * Reference: https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md
@@ -514,10 +537,8 @@ export default class AbstractCmi5 {
     return this.interaction(
       testId,
       questionId,
-      Object.keys(answers)
-        .map((key) => {
-          return `${key}[.]${answers[key]}`;
-        })
+      Object.entries(answers)
+        .map(([k, v]) => `${k}[.]${v}`)
         .join("[,]"),
       {
         type: "http://adlnet.gov/expapi/activities/cmi.interaction",
@@ -525,10 +546,8 @@ export default class AbstractCmi5 {
         ...(correctAnswers
           ? {
               correctResponsesPattern: [
-                Object.keys(correctAnswers)
-                  .map((key) => {
-                    return `${key}[.]${correctAnswers[key]}`;
-                  })
+                Object.entries(correctAnswers)
+                  .map(([key, val]) => `${key}[.]${val}`)
                   .join("[,]"),
               ],
             }
@@ -559,10 +578,8 @@ export default class AbstractCmi5 {
     return this.interaction(
       testId,
       questionId,
-      Object.keys(answers)
-        .map((key) => {
-          return `${key}[.]${answers[key]}`;
-        })
+      Object.entries(answers)
+        .map(([k, v]) => `${k}[.]${v}`)
         .join("[,]"),
       {
         type: "http://adlnet.gov/expapi/activities/cmi.interaction",
@@ -570,19 +587,8 @@ export default class AbstractCmi5 {
         ...(correctAnswers
           ? {
               correctResponsesPattern: [
-                Object.keys(correctAnswers)
-                  .map((key) => {
-                    const exact: string = correctAnswers[key].exact
-                      ? correctAnswers[key].exact.toString()
-                      : "";
-                    const min: string = correctAnswers[key].min
-                      ? correctAnswers[key].min.toString()
-                      : "";
-                    const max: number = correctAnswers[key].max
-                      ? correctAnswers[key].max.toString()
-                      : "";
-                    return `${key}[.]${exact ? exact : min + ":" + max}`;
-                  })
+                Object.entries(correctAnswers)
+                  .map(([k, v]) => `${k}[.]${numericCriteriaToString(v)}`)
                   .join("[,]"),
               ],
             }
@@ -642,6 +648,9 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
+    const correctAnswerObj = correctAnswer
+      ? { correctResponsesPattern: [numericCriteriaToString(correctAnswer)] }
+      : {};
     return this.interaction(
       testId,
       questionId,
@@ -649,19 +658,7 @@ export default class AbstractCmi5 {
       {
         type: "http://adlnet.gov/expapi/activities/cmi.interaction",
         interactionType: "numeric",
-        ...(correctAnswer
-          ? {
-              correctResponsesPattern: [
-                `${
-                  (correctAnswer as NumericExact).exact
-                    ? (correctAnswer as NumericExact).exact
-                    : (correctAnswer as NumericRange).min +
-                      ":" +
-                      (correctAnswer as NumericRange).max
-                }`,
-              ],
-            }
-          : {}),
+        ...correctAnswerObj,
         ...(name ? { name } : {}),
         ...(description ? { description } : {}),
       },
