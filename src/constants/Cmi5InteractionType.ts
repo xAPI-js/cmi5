@@ -1,4 +1,5 @@
-export const Cmi5InteractionIRI = "http://adlnet.gov/expapi/activities/cmi.interaction" as const;
+export const Cmi5InteractionIRI =
+  "http://adlnet.gov/expapi/activities/cmi.interaction" as const;
 
 export class Cmi5InteractionType {
   public static readonly TRUE_FALSE = "true-false";

@@ -45,7 +45,10 @@ import {
 
 export * from "./interfaces";
 
-function _applyTransform(mergedStatement: Statement, options: SendStatementOptions) {
+function _applyTransform(
+  mergedStatement: Statement,
+  options: SendStatementOptions
+) {
   return options && typeof options.transform === "function"
     ? options.transform(mergedStatement)
     : mergedStatement;
@@ -186,6 +189,7 @@ export default class AbstractCmi5 {
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionTrueFalse(
     testId: string,
     questionId: string,
@@ -197,11 +201,15 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionTrueFalseStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionChoice(
     testId: string,
     questionId: string,
@@ -213,12 +221,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionChoiceStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionFillIn(
     testId: string,
     questionId: string,
@@ -229,12 +241,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionFillInStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionLongFillIn(
     testId: string,
     questionId: string,
@@ -245,12 +261,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionLongFillInStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionLikert(
     testId: string,
     questionId: string,
@@ -262,12 +282,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionLikertStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionMatching(
     testId: string,
     questionId: string,
@@ -280,12 +304,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionMatchingStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionPerformance(
     testId: string,
     questionId: string,
@@ -297,12 +325,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionPerformanceStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionSequencing(
     testId: string,
     questionId: string,
@@ -314,12 +346,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionSequencingStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionNumeric(
     testId: string,
     questionId: string,
@@ -330,12 +366,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionNumericStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interactionOther(
     testId: string,
     questionId: string,
@@ -346,12 +386,16 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionOtherStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public interaction(
     testId: string,
     questionId: string,
@@ -360,9 +404,12 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
+    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): AxiosPromise<string[]> {
-    // @ts-ignore
+    /* eslint-disable prefer-rest-params */
+    // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionStatement(this, ...arguments);
+    /* eslint-enable prefer-rest-params */
     return this.sendXapiStatement(statement);
   }
 

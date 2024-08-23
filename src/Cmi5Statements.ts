@@ -21,15 +21,16 @@ import {
   Performance,
   PerformanceCriteria,
   Period,
-  SendStatementOptions,
   StatementTransform,
 } from "./interfaces";
 import {
   Cmi5ContextActivity,
-  Cmi5DefinedVerbs, Cmi5Extension, Cmi5InteractionIRI,
+  Cmi5DefinedVerbs,
+  Cmi5ContextExtension,
+  Cmi5InteractionIRI,
   Cmi5InteractionType,
+  Cmi5ResultExtension,
 } from "./constants";
-
 
 export function Cmi5DefinedStatement(
   ctx: LaunchContext,
@@ -116,7 +117,7 @@ export function Cmi5PassStatement(
   score?: ResultScore | number,
   objectiveOrOptions?: ObjectiveActivity | PassOptions
 ): Statement {
-  const masteryScore = ctx.launchData.masteryScore
+  const masteryScore = ctx.launchData.masteryScore;
   // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
   if (ctx.launchData.launchMode !== "Normal")
     throw new Error("Can only send PASSED when launchMode is 'Normal'");
@@ -148,7 +149,7 @@ export function Cmi5PassStatement(
         ...(objective ? { parent: [objective] } : {}),
       },
       ...(masteryScore
-        ? { extensions: { [Cmi5Extension.MASTERY_SCORE]: masteryScore } }
+        ? { extensions: { [Cmi5ContextExtension.MASTERY_SCORE]: masteryScore } }
         : {}),
     },
   });
@@ -156,7 +157,7 @@ export function Cmi5PassStatement(
 
 export function Cmi5FailStatement(
   ctx: LaunchContext,
-  score?: ResultScore | number,
+  score?: ResultScore | number
 ): Statement {
   // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
   if (ctx.launchData.launchMode !== "Normal")
@@ -182,8 +183,7 @@ export function Cmi5FailStatement(
       ...(ctx.launchData.masteryScore
         ? {
             extensions: {
-              [Cmi5Extension.MASTERY_SCORE]:
-                ctx.launchData.masteryScore,
+              [Cmi5ContextExtension.MASTERY_SCORE]: ctx.launchData.masteryScore,
             },
           }
         : {}),
@@ -215,7 +215,7 @@ export function Cmi5ProgressStatement(
     },
     result: {
       extensions: {
-        [Cmi5Extension.PROGRESS]: percent,
+        [Cmi5ResultExtension.PROGRESS]: percent,
       },
     },
   });
@@ -615,9 +615,7 @@ export function Cmi5InteractionOtherStatement(
     {
       type: Cmi5InteractionIRI,
       interactionType: "other",
-      ...(correctAnswer
-        ? { correctResponsesPattern: [correctAnswer] }
-        : {}),
+      ...(correctAnswer ? { correctResponsesPattern: [correctAnswer] } : {}),
       ...(name ? { name } : {}),
       ...(description ? { description } : {}),
     },
@@ -663,7 +661,6 @@ export function Cmi5InteractionStatement(
   });
 }
 
-
 // Helper/utility functions
 
 // Formatting
@@ -687,10 +684,6 @@ function _numericCriteriaToString(
 
 function _durationFromPeriod(period: Period) {
   return XAPI.calculateISO8601Duration(period.start, period.end);
-}
-
-function _durationFromNow(then: Date) {
-  return XAPI.calculateISO8601Duration(then, new Date());
 }
 
 // Type predicates
@@ -724,8 +717,9 @@ function _isNumericRange(candidate: unknown): candidate is NumericRange {
   );
 }
 
-function _didMeetMasteryScore(masteryScore: number, rScore?: ResultScore): boolean {
-  return rScore &&
-    _isNumber(rScore.scaled) &&
-    rScore.scaled >= masteryScore;
+function _didMeetMasteryScore(
+  masteryScore: number,
+  rScore?: ResultScore
+): boolean {
+  return rScore && _isNumber(rScore.scaled) && rScore.scaled >= masteryScore;
 }

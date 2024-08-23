@@ -1,9 +1,14 @@
-import { LaunchContext, LaunchData, LaunchParameters } from "../../src/interfaces";
-import { beforeEach } from "node:test";
+import {
+  LaunchContext,
+  LaunchData,
+  LaunchParameters,
+} from "../../src/interfaces";
 import { randomUUID } from "node:crypto";
-import Cmi5 from "../../src/Cmi5";
 import { Cmi5DefinedVerbs } from "../../src/constants";
-import { Cmi5CompleteStatement, Cmi5PassStatement } from "../../src/Cmi5Statements";
+import {
+  Cmi5CompleteStatement,
+  Cmi5PassStatement,
+} from "../../src/Cmi5Statements";
 import { ResultScore } from "@xapi/xapi";
 
 describe("Cmi5 Statements", () => {
@@ -13,17 +18,17 @@ describe("Cmi5 Statements", () => {
     endpoint: "http://fake-lrs.example.com",
     fetch: "http://fake-fetch.lms.example.com",
     registration: randomUUID(),
-  }
+  };
   const DEFAULT_LAUNCH_DATA: LaunchData = {
     contextTemplate: {},
     launchMode: "Normal",
     moveOn: "CompletedAndPassed",
-  }
+  };
   const DEFAULT_LAUNCH_CONTEXT: LaunchContext = {
     initializedDate: new Date(),
     launchParameters: DEFAULT_LAUNCH_PARAMETERS,
     launchData: DEFAULT_LAUNCH_DATA,
-  }
+  };
 
   describe("Cmi5CompleteStatement", () => {
     [
@@ -33,28 +38,32 @@ describe("Cmi5 Statements", () => {
       it(`calculates duration as time since initialized (${ex.seconds}s=${ex.expectedDuration})`, () => {
         const ctx: LaunchContext = {
           ...DEFAULT_LAUNCH_CONTEXT,
-          initializedDate: new Date(Date.now() - (ex.seconds * 1000)),
-        }
+          initializedDate: new Date(Date.now() - ex.seconds * 1000),
+        };
         const statement = Cmi5CompleteStatement(ctx);
         expect(statement.verb).toEqual(Cmi5DefinedVerbs.COMPLETED);
         expect(statement.result.duration).toEqual(ex.expectedDuration);
       });
     });
 
-    ["Browse", "Review", null].forEach((launchMode: LaunchData["launchMode"]) => {
-      it(`throws exception if launchMode is '${launchMode}'`, async () => {
-        const ctx: LaunchContext = {
-          ...DEFAULT_LAUNCH_CONTEXT,
-          launchData: {
-            ...DEFAULT_LAUNCH_DATA,
-            launchMode: launchMode,
-          },
-        }
-        expect(() => Cmi5CompleteStatement(ctx)).toThrow(expect.objectContaining({
-          message: "Can only send COMPLETED when launchMode is 'Normal'",
-        }));
-      });
-    });
+    ["Browse", "Review", null].forEach(
+      (launchMode: LaunchData["launchMode"]) => {
+        it(`throws exception if launchMode is '${launchMode}'`, async () => {
+          const ctx: LaunchContext = {
+            ...DEFAULT_LAUNCH_CONTEXT,
+            launchData: {
+              ...DEFAULT_LAUNCH_DATA,
+              launchMode: launchMode,
+            },
+          };
+          expect(() => Cmi5CompleteStatement(ctx)).toThrow(
+            expect.objectContaining({
+              message: "Can only send COMPLETED when launchMode is 'Normal'",
+            })
+          );
+        });
+      }
+    );
   });
 
   describe("Cmi5PassStatement", () => {
@@ -78,14 +87,16 @@ describe("Cmi5 Statements", () => {
           launchData: {
             ...DEFAULT_LAUNCH_DATA,
             masteryScore: 0.5,
-          }
+          },
         };
 
         describe("when `resultScore` is greater than `masteryScore`", () => {
-          it("returns `statement.result.success === true` ", async () => {
+          it("returns `statement.result.success === true`", async () => {
             expect(ctx.launchData.masteryScore).toBeGreaterThan(0);
             const resultScore: ResultScore = { scaled: 0.9 };
-            expect(resultScore.scaled).toBeGreaterThan(ctx.launchData.masteryScore);
+            expect(resultScore.scaled).toBeGreaterThan(
+              ctx.launchData.masteryScore
+            );
             const statement = Cmi5PassStatement(ctx, resultScore);
             expect(statement.result.success).toEqual(true);
           });
@@ -93,7 +104,9 @@ describe("Cmi5 Statements", () => {
           it("returns a `ResultScore` when given a `ResultScore`", async () => {
             expect(ctx.launchData.masteryScore).toBeGreaterThan(0);
             const resultScore: ResultScore = { scaled: 0.9 };
-            expect(resultScore.scaled).toBeGreaterThan(ctx.launchData.masteryScore);
+            expect(resultScore.scaled).toBeGreaterThan(
+              ctx.launchData.masteryScore
+            );
             const statement = Cmi5PassStatement(ctx, resultScore);
             expect(statement.result.score).toEqual(resultScore);
           });
@@ -121,12 +134,12 @@ describe("Cmi5 Statements", () => {
             it(`sends duration as time since initialized (${ex.seconds}=${ex.expectedDuration})`, async () => {
               const ctx: LaunchContext = {
                 ...DEFAULT_LAUNCH_CONTEXT,
-                initializedDate: new Date(Date.now() - (ex.seconds * 1000)),
+                initializedDate: new Date(Date.now() - ex.seconds * 1000),
                 launchData: {
                   ...DEFAULT_LAUNCH_DATA,
                   masteryScore: 0.5,
                 },
-              }
+              };
               expect(ctx.launchData.masteryScore).toBeGreaterThan(0);
               const scaledScore = 0.9;
               expect(scaledScore).toBeGreaterThan(0);
@@ -141,69 +154,44 @@ describe("Cmi5 Statements", () => {
             expect(ctx.launchData.masteryScore).toBeGreaterThan(0);
             const resultScore = 0.4;
             expect(resultScore).toBeLessThan(ctx.launchData.masteryScore);
-            expect(() => Cmi5PassStatement(ctx, resultScore)).toThrow(expect.objectContaining({
-              message: "Learner has not met Mastery Score",
-            }));
+            expect(() => Cmi5PassStatement(ctx, resultScore)).toThrow(
+              expect.objectContaining({
+                message: "Learner has not met Mastery Score",
+              })
+            );
           });
         });
 
         describe("when `resultScore` is not provided", () => {
           it("throws an error that learner has not met mastery score", async () => {
             expect(ctx.launchData.masteryScore).toBeGreaterThan(0);
-            expect(() => Cmi5PassStatement(ctx)).toThrow(expect.objectContaining({
-              message: "Learner has not met Mastery Score",
-            }));
+            expect(() => Cmi5PassStatement(ctx)).toThrow(
+              expect.objectContaining({
+                message: "Learner has not met Mastery Score",
+              })
+            );
           });
         });
       });
-
     });
 
-  //   it("posts a PASSED statement with no result score when score not passed", async () => {
-  //     mockCmi5.fakeLaunchData = {
-  //       ...mockCmi5.fakeLaunchData,
-  //       masteryScore: undefined,
-  //     };
-  //     await initialize(mockCmi5);
-  //     Cmi5.instance.pass();
-  //     expect(mockCmi5.mockXapiSendStatement).toHaveBeenCalledWith(
-  //       expectActivityStatement(Cmi5.instance, Cmi5DefinedVerbs.PASSED, {
-  //         result: expect.not.objectContaining({
-  //           score: expect.anything(),
-  //         }),
-  //       })
-  //     );
-  //   });
-  //
-  //   it("throws if passed score is beneath masteryScore", async () => {
-  //     await initialize(mockCmi5);
-  //     let exception;
-  //     try {
-  //       await Cmi5.instance.pass(0.1);
-  //     } catch (err) {
-  //       exception = err;
-  //     }
-  //     expect(exception).toEqual(
-  //       expect.objectContaining({
-  //         message: "Learner has not met Mastery Score",
-  //       })
-  //     );
-  //   });
-  //
-
-    ["Browse", "Review", null].forEach((launchMode: LaunchData["launchMode"]) => {
-      it(`throws exception if launchMode is '${launchMode}'`, async () => {
-        const ctx: LaunchContext = {
-          ...DEFAULT_LAUNCH_CONTEXT,
-          launchData: {
-            ...DEFAULT_LAUNCH_DATA,
-            launchMode: launchMode,
-          },
-        }
-        expect(() => Cmi5PassStatement(ctx)).toThrow(expect.objectContaining({
-          message: "Can only send PASSED when launchMode is 'Normal'",
-        }));
-      });
-    });
+    ["Browse", "Review", null].forEach(
+      (launchMode: LaunchData["launchMode"]) => {
+        it(`throws exception if launchMode is '${launchMode}'`, async () => {
+          const ctx: LaunchContext = {
+            ...DEFAULT_LAUNCH_CONTEXT,
+            launchData: {
+              ...DEFAULT_LAUNCH_DATA,
+              launchMode: launchMode,
+            },
+          };
+          expect(() => Cmi5PassStatement(ctx)).toThrow(
+            expect.objectContaining({
+              message: "Can only send PASSED when launchMode is 'Normal'",
+            })
+          );
+        });
+      }
+    );
   });
 });
