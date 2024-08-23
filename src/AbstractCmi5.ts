@@ -1,4 +1,4 @@
-import axios, { AxiosPromise, AxiosResponse } from "axios";
+import axios, { AxiosPromise } from "axios";
 import XAPI, {
   InteractionActivityDefinition,
   InteractionComponent,
@@ -12,12 +12,12 @@ import {
   LaunchData,
   LaunchParameters,
   LearnerPreferences,
+  MoveOnOptions,
+  NumericCriteria,
   PassOptions,
   Performance,
   PerformanceCriteria,
   Period,
-  MoveOnOptions,
-  NumericCriteria,
   SendStatementOptions,
 } from "./interfaces";
 import { Cmi5DefinedVerbs } from "./constants";
@@ -44,6 +44,12 @@ import {
 } from "./Cmi5Statements";
 
 export * from "./interfaces";
+
+function _applyTransform(mergedStatement: Statement, options: SendStatementOptions) {
+  return options && typeof options.transform === "function"
+    ? options.transform(mergedStatement)
+    : mergedStatement;
+}
 
 /**
  * Experience API cmi5 Profile (Quartz - 1st Edition)
@@ -191,18 +197,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionTrueFalseStatement(
-      this,
-      testId,
-      questionId,
-      answer,
-      correctAnswer,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionTrueFalseStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -218,19 +214,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionChoiceStatement(
-      this,
-      testId,
-      questionId,
-      answerIds,
-      correctAnswerIds,
-      choices,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionChoiceStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -245,18 +230,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionFillInStatement(
-      this,
-      testId,
-      questionId,
-      answers,
-      correctAnswers,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionFillInStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -271,18 +246,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionLongFillInStatement(
-      this,
-      testId,
-      questionId,
-      answers,
-      correctAnswers,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionLongFillInStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -298,19 +263,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionLikertStatement(
-      this,
-      testId,
-      questionId,
-      answerId,
-      correctAnswerId,
-      scale,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionLikertStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -327,20 +281,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionMatchingStatement(
-      this,
-      testId,
-      questionId,
-      answers,
-      correctAnswers,
-      source,
-      target,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionMatchingStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -356,19 +298,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionPerformanceStatement(
-      this,
-      testId,
-      questionId,
-      answers,
-      correctAnswers,
-      steps,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionPerformanceStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -384,19 +315,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionSequencingStatement(
-      this,
-      testId,
-      questionId,
-      answerIds,
-      correctAnswerIds,
-      choices,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionSequencingStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -411,18 +331,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionNumericStatement(
-      this,
-      testId,
-      questionId,
-      answer,
-      correctAnswer,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionNumericStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -437,19 +347,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionOtherStatement(
-      this,
-      testId,
-      questionId,
-      answer,
-      correctAnswer,
-      name,
-      description,
-      success,
-      duration,
-      objective
-    );
-
+    // @ts-ignore
+    const statement = Cmi5InteractionOtherStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -462,16 +361,8 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
   ): AxiosPromise<string[]> {
-    const statement = Cmi5InteractionStatement(
-      this,
-      testId,
-      questionId,
-      response,
-      interactionDefinition,
-      success,
-      duration,
-      objective
-    );
+    // @ts-ignore
+    const statement = Cmi5InteractionStatement(this, ...arguments);
     return this.sendXapiStatement(statement);
   }
 
@@ -484,14 +375,6 @@ export default class AbstractCmi5 {
       newStatementIds.push(statement.id);
     }
     return newStatementIds;
-  }
-
-  private appendStatementIds(
-    response: AxiosResponse<string[]>,
-    toIds: string[]
-  ): void {
-    // eslint-disable-next-line prefer-spread
-    toIds.push.apply(toIds, response.data);
   }
 
   private async getAuthTokenFromLMS(fetchUrl: string): Promise<string> {
@@ -522,13 +405,10 @@ export default class AbstractCmi5 {
   }
 
   public async sendXapiStatement(
-    mergedStatement: Statement,
+    statement: Statement,
     options?: SendStatementOptions
   ): AxiosPromise<string[]> {
-    const sendStatement =
-      options && typeof options.transform === "function"
-        ? options.transform(mergedStatement)
-        : mergedStatement;
+    const sendStatement = _applyTransform(statement, options);
     return this._xapi.sendStatement({
       statement: sendStatement,
     });

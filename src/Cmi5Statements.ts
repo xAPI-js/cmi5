@@ -24,7 +24,12 @@ import {
   SendStatementOptions,
   StatementTransform,
 } from "./interfaces";
-import { Cmi5ContextActivity, Cmi5DefinedVerbs } from "./constants";
+import {
+  Cmi5ContextActivity,
+  Cmi5DefinedVerbs, Cmi5Extension, Cmi5InteractionIRI,
+  Cmi5InteractionType,
+} from "./constants";
+
 
 export function Cmi5DefinedStatement(
   ctx: LaunchContext,
@@ -81,13 +86,11 @@ export function Cmi5AllowedStatement(
   ]) as Statement;
 }
 
-export function Cmi5CompleteStatement(
-  ctx: LaunchContext,
-  options?: SendStatementOptions
-): Statement {
+export function Cmi5CompleteStatement(ctx: LaunchContext): Statement {
   // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
   if (ctx.launchData.launchMode !== "Normal")
     throw new Error("Can only send COMPLETED when launchMode is 'Normal'");
+
   return Cmi5DefinedStatement(ctx, {
     // 9.3.3 Completed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#933-completed
     verb: Cmi5DefinedVerbs.COMPLETED,
@@ -113,21 +116,19 @@ export function Cmi5PassStatement(
   score?: ResultScore | number,
   objectiveOrOptions?: ObjectiveActivity | PassOptions
 ): Statement {
+  const masteryScore = ctx.launchData.masteryScore
   // 10.0 xAPI State Data Model - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#100-xapi-state-data-model
   if (ctx.launchData.launchMode !== "Normal")
     throw new Error("Can only send PASSED when launchMode is 'Normal'");
+
   const rScore = _toResultScore(score);
   // Best Practice #4 - AU Mastery Score - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
-  if (
-    ctx.launchData.masteryScore &&
-    (!rScore ||
-      isNaN(Number(rScore.scaled)) ||
-      rScore.scaled < ctx.launchData.masteryScore)
-  )
+  if (_isNumber(masteryScore) && !_didMeetMasteryScore(masteryScore, rScore))
     throw new Error("Learner has not met Mastery Score");
   const objective = _isObjectiveActivity(objectiveOrOptions)
     ? objectiveOrOptions
     : objectiveOrOptions?.objectiveActivity;
+
   return Cmi5DefinedStatement(ctx, {
     // 9.3.4 Passed - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#934-passed
     verb: Cmi5DefinedVerbs.PASSED,
@@ -146,13 +147,8 @@ export function Cmi5PassStatement(
         // Best Practice #1 - Use of Objectives - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
         ...(objective ? { parent: [objective] } : {}),
       },
-      ...(ctx.launchData.masteryScore
-        ? {
-            extensions: {
-              "https://w3id.org/xapi/cmi5/context/extensions/masteryscore":
-                ctx.launchData.masteryScore,
-            },
-          }
+      ...(masteryScore
+        ? { extensions: { [Cmi5Extension.MASTERY_SCORE]: masteryScore } }
         : {}),
     },
   });
@@ -180,15 +176,13 @@ export function Cmi5FailStatement(
     },
     context: {
       contextActivities: {
-        category: [
-          // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
-          Cmi5ContextActivity.MOVE_ON,
-        ],
+        // 9.6.2.2 moveOn Category Activity - https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#9622-moveon-category-activity
+        category: [Cmi5ContextActivity.MOVE_ON],
       },
       ...(ctx.launchData.masteryScore
         ? {
             extensions: {
-              "https://w3id.org/xapi/cmi5/context/extensions/masteryscore":
+              [Cmi5Extension.MASTERY_SCORE]:
                 ctx.launchData.masteryScore,
             },
           }
@@ -221,7 +215,7 @@ export function Cmi5ProgressStatement(
     },
     result: {
       extensions: {
-        "https://w3id.org/xapi/cmi5/result/extensions/progress": percent,
+        [Cmi5Extension.PROGRESS]: percent,
       },
     },
   });
@@ -302,12 +296,10 @@ export function Cmi5InteractionTrueFalseStatement(
     questionId,
     answer.toString(),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "true-false",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.TRUE_FALSE,
       ...(correctAnswer !== undefined
-        ? {
-            correctResponsesPattern: correctAnswer ? ["true"] : ["false"],
-          }
+        ? { correctResponsesPattern: correctAnswer ? ["true"] : ["false"] }
         : {}),
       ...(name ? { name } : {}),
       ...(description ? { description } : {}),
@@ -337,12 +329,10 @@ export function Cmi5InteractionChoiceStatement(
     questionId,
     answerIds.join("[,]"),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "choice",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.CHOICE,
       ...(correctAnswerIds
-        ? {
-            correctResponsesPattern: [correctAnswerIds.join("[,]")],
-          }
+        ? { correctResponsesPattern: [correctAnswerIds.join("[,]")] }
         : {}),
       ...(choices ? { choices } : {}),
       ...(name ? { name } : {}),
@@ -372,12 +362,10 @@ export function Cmi5InteractionFillInStatement(
     questionId,
     answers.join("[,]"),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "fill-in",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.FILL_IN,
       ...(correctAnswers
-        ? {
-            correctResponsesPattern: [correctAnswers.join("[,]")],
-          }
+        ? { correctResponsesPattern: [correctAnswers.join("[,]")] }
         : {}),
       ...(name ? { name } : {}),
       ...(description ? { description } : {}),
@@ -406,12 +394,10 @@ export function Cmi5InteractionLongFillInStatement(
     questionId,
     answers.join("[,]"),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "long-fill-in",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.LONG_FILL_IN,
       ...(correctAnswers
-        ? {
-            correctResponsesPattern: [correctAnswers.join("[,]")],
-          }
+        ? { correctResponsesPattern: [correctAnswers.join("[,]")] }
         : {}),
       ...(name ? { name } : {}),
       ...(description ? { description } : {}),
@@ -441,12 +427,10 @@ export function Cmi5InteractionLikertStatement(
     questionId,
     answerId,
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "likert",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.LIKERT,
       ...(correctAnswerId
-        ? {
-            correctResponsesPattern: [correctAnswerId],
-          }
+        ? { correctResponsesPattern: [correctAnswerId] }
         : {}),
       ...(scale ? { scale } : {}),
       ...(name ? { name } : {}),
@@ -480,8 +464,8 @@ export function Cmi5InteractionMatchingStatement(
       .map(([k, v]) => `${k}[.]${v}`)
       .join("[,]"),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "matching",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.MATCHING,
       ...(correctAnswers
         ? {
             correctResponsesPattern: [
@@ -523,8 +507,8 @@ export function Cmi5InteractionPerformanceStatement(
       .map(([k, v]) => `${k}[.]${v}`)
       .join("[,]"),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "performance",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.PERFORMANCE,
       ...(correctAnswers
         ? {
             correctResponsesPattern: [
@@ -563,12 +547,10 @@ export function Cmi5InteractionSequencingStatement(
     questionId,
     answerIds.join("[,]"),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "sequencing",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.SEQUENCING,
       ...(correctAnswerIds
-        ? {
-            correctResponsesPattern: [correctAnswerIds.join("[,]")],
-          }
+        ? { correctResponsesPattern: [correctAnswerIds.join("[,]")] }
         : {}),
       ...(choices ? { choices } : {}),
       ...(name ? { name } : {}),
@@ -601,8 +583,8 @@ export function Cmi5InteractionNumericStatement(
     questionId,
     answer.toString(),
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
-      interactionType: "numeric",
+      type: Cmi5InteractionIRI,
+      interactionType: Cmi5InteractionType.NUMERIC,
       ...correctAnswerObj,
       ...(name ? { name } : {}),
       ...(description ? { description } : {}),
@@ -631,12 +613,10 @@ export function Cmi5InteractionOtherStatement(
     questionId,
     answer,
     {
-      type: "http://adlnet.gov/expapi/activities/cmi.interaction",
+      type: Cmi5InteractionIRI,
       interactionType: "other",
       ...(correctAnswer
-        ? {
-            correctResponsesPattern: [correctAnswer],
-          }
+        ? { correctResponsesPattern: [correctAnswer] }
         : {}),
       ...(name ? { name } : {}),
       ...(description ? { description } : {}),
@@ -654,21 +634,14 @@ export function Cmi5InteractionStatement(
   response: string,
   interactionDefinition: InteractionActivityDefinition,
   success?: boolean,
-  duration?: Period,
+  period?: Period,
   objective?: ObjectiveActivity
 ): Statement {
   return Cmi5AllowedStatement(ctx, {
     verb: XAPI.Verbs.ANSWERED,
     result: {
       response: response,
-      ...(duration
-        ? {
-            duration: XAPI.calculateISO8601Duration(
-              duration.start,
-              duration.end
-            ),
-          }
-        : {}),
+      ...(period ? { duration: _durationFromPeriod(period) } : {}),
       ...(typeof success === "boolean" ? { success } : {}),
     },
     object: {
@@ -690,19 +663,51 @@ export function Cmi5InteractionStatement(
   });
 }
 
+
 // Helper/utility functions
+
+// Formatting
+
+function _toResultScore(s?: ResultScore | number): ResultScore | undefined {
+  return _isNumber(s) ? { scaled: Number(s) } : s;
+}
+
+function _numericCriteriaToString(
+  criteria: NumericExact | NumericRange | unknown
+) {
+  if (_isNumericExact(criteria)) {
+    return String(criteria.exact);
+  } else if (_isNumericRange(criteria)) {
+    const { min, max } = criteria;
+    return `${min}:${max}`;
+  } else {
+    return ":";
+  }
+}
+
+function _durationFromPeriod(period: Period) {
+  return XAPI.calculateISO8601Duration(period.start, period.end);
+}
+
+function _durationFromNow(then: Date) {
+  return XAPI.calculateISO8601Duration(then, new Date());
+}
+
+// Type predicates
 
 function _isObjectiveActivity(x?: unknown): x is ObjectiveActivity {
   return (
     x &&
+    typeof x === "object" &&
+    "objectType" in x &&
     x.objectType === "Activity" &&
+    "id" in x &&
     typeof x.id === "string" &&
+    "definition" in x &&
+    typeof x.definition === "object" &&
+    "type" in x.definition &&
     x.definition.type === "http://adlnet.gov/expapi/activities/objective"
   );
-}
-
-function _toResultScore(s?: ResultScore | number): ResultScore | undefined {
-  return _isNumber(s) ? { scaled: Number(s) } : s;
 }
 
 function _isNumber(n?: number | unknown): n is number {
@@ -719,15 +724,8 @@ function _isNumericRange(candidate: unknown): candidate is NumericRange {
   );
 }
 
-function _numericCriteriaToString(
-  criteria: NumericExact | NumericRange | unknown
-) {
-  if (_isNumericExact(criteria)) {
-    return String(criteria.exact);
-  } else if (_isNumericRange(criteria)) {
-    const { min, max } = criteria;
-    return `${min}:${max}`;
-  } else {
-    return ":";
-  }
+function _didMeetMasteryScore(masteryScore: number, rScore?: ResultScore): boolean {
+  return rScore &&
+    _isNumber(rScore.scaled) &&
+    rScore.scaled >= masteryScore;
 }
