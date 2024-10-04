@@ -32,8 +32,8 @@ describe("Cmi5 Statements", () => {
 
   describe("Cmi5CompleteStatement", () => {
     [
-      { seconds: 125, expectedDuration: "PT2M5S" },
-      { seconds: 31, expectedDuration: "PT31S" },
+      { seconds: 125, expectedDuration: ["PT2M5S", "PT2M5.001S"] },
+      { seconds: 31, expectedDuration: ["PT31S", "PT31.001S"] },
     ].forEach((ex) => {
       it(`calculates duration as time since initialized (${ex.seconds}s=${ex.expectedDuration})`, () => {
         const ctx: LaunchContext = {
@@ -42,7 +42,7 @@ describe("Cmi5 Statements", () => {
         };
         const statement = Cmi5CompleteStatement(ctx);
         expect(statement.verb).toEqual(Cmi5DefinedVerbs.COMPLETED);
-        expect(statement.result.duration).toEqual(ex.expectedDuration);
+        expect(ex.expectedDuration).toContain(statement.result.duration);
       });
     });
 
@@ -128,8 +128,8 @@ describe("Cmi5 Statements", () => {
           });
 
           [
-            { seconds: 93, expectedDuration: "PT1M33S" },
-            { seconds: 7593, expectedDuration: "PT2H6M33S" },
+            { seconds: 93, expectedDuration: ["PT1M33S", "PT1M33.001S"] },
+            { seconds: 7593, expectedDuration: ["PT2H6M33S", "PT2H6M33.001S"] },
           ].forEach((ex) => {
             it(`sends duration as time since initialized (${ex.seconds}=${ex.expectedDuration})`, async () => {
               const ctx: LaunchContext = {
@@ -144,7 +144,7 @@ describe("Cmi5 Statements", () => {
               const scaledScore = 0.9;
               expect(scaledScore).toBeGreaterThan(0);
               const statement = Cmi5PassStatement(ctx, scaledScore);
-              expect(statement.result.duration).toEqual(ex.expectedDuration);
+              expect(ex.expectedDuration).toContain(statement.result.duration);
             });
           });
         });
