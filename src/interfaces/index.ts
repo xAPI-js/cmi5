@@ -1,4 +1,5 @@
 export * from "./AuthTokenResponse";
+export * from "./LaunchContext";
 export * from "./LaunchData";
 export * from "./LaunchParameters";
 export * from "./LearnerPreferences";
