@@ -1,3 +1,11 @@
+# 1.4.0 (6 Oct 2024)
+
+- Uses an instance of `XAPI` per instance of `CMI5` ([#263](https://github.com/xapijs/cmi5/issues/263), [#264](https://github.com/xapijs/cmi5/pull/264) - Thanks [emmanuel](https://github.com/emmanuel)!)
+- Added support for usage in a backend scenario ([#265](https://github.com/xapijs/cmi5/issues/265), [#266](https://github.com/xapijs/cmi5/pull/266) - Thanks [emmanuel](https://github.com/emmanuel)!)
+- Refactored statement construction logic and improved statement testing ([#274](https://github.com/xapijs/cmi5/pull/274) - Thanks [emmanuel](https://github.com/emmanuel)!)
+- Updated `axios` to patch security vulnerability
+- Updated `rollup` to patch security vulnerability
+
 # 1.3.3 (30 Jul 2024)
 
 - Updated `follow-redirects` to patch security vulnerability
