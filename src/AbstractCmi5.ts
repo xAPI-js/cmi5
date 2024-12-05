@@ -1,4 +1,4 @@
-import axios, { AxiosPromise } from "axios";
+import axios from "axios";
 import XAPI, {
   InteractionActivityDefinition,
   InteractionComponent,
@@ -42,6 +42,7 @@ import {
   Cmi5ProgressStatement,
   Cmi5TerminateStatement,
 } from "./Cmi5Statements";
+import { AdapterPromise } from "@xapi/xapi/dist/types/adapters";
 
 export * from "./interfaces";
 
@@ -131,7 +132,7 @@ export default class AbstractCmi5 {
   public async initialize(sessionState?: {
     authToken: string;
     initializedDate: Date;
-  }): AxiosPromise<string[] | void> {
+  }): AdapterPromise<string[] | void> {
     // Best Practice #17 – Persist AU Session State - https://aicc.github.io/CMI-5_Spec_Current/best_practices/
     const authToken = sessionState
       ? sessionState.authToken
@@ -157,7 +158,7 @@ export default class AbstractCmi5 {
     }
   }
 
-  public complete(options?: SendStatementOptions): AxiosPromise<string[]> {
+  public complete(options?: SendStatementOptions): AdapterPromise<string[]> {
     const statement = Cmi5CompleteStatement(this);
     return this.sendXapiStatement(statement, options);
   }
@@ -165,7 +166,7 @@ export default class AbstractCmi5 {
   public pass(
     score?: ResultScore | number,
     objectiveOrOptions?: ObjectiveActivity | PassOptions
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     const statement = Cmi5PassStatement(this, score, objectiveOrOptions);
     return this.sendXapiStatement(statement, objectiveOrOptions as PassOptions);
   }
@@ -173,18 +174,18 @@ export default class AbstractCmi5 {
   public fail(
     score?: ResultScore | number,
     options?: SendStatementOptions
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     const statement = Cmi5FailStatement(this, score);
     return this.sendXapiStatement(statement, options);
   }
 
-  public terminate(): AxiosPromise<string[]> {
+  public terminate(): AdapterPromise<string[]> {
     const statement = Cmi5TerminateStatement(this);
     return this.sendXapiStatement(statement);
   }
 
   // "cmi5 allowed" Statements
-  public progress(percent: number): AxiosPromise<string[]> {
+  public progress(percent: number): AdapterPromise<string[]> {
     const statement = Cmi5ProgressStatement(this, percent);
     return this.sendXapiStatement(statement);
   }
@@ -200,7 +201,7 @@ export default class AbstractCmi5 {
     success?: boolean,
     duration?: Period,
     objective?: ObjectiveActivity
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionTrueFalseStatement(this, ...arguments);
@@ -222,7 +223,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionChoiceStatement(this, ...arguments);
@@ -242,7 +243,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionFillInStatement(this, ...arguments);
@@ -262,7 +263,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionLongFillInStatement(this, ...arguments);
@@ -283,7 +284,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionLikertStatement(this, ...arguments);
@@ -305,7 +306,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionMatchingStatement(this, ...arguments);
@@ -326,7 +327,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionPerformanceStatement(this, ...arguments);
@@ -347,7 +348,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionSequencingStatement(this, ...arguments);
@@ -367,7 +368,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionNumericStatement(this, ...arguments);
@@ -387,7 +388,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionOtherStatement(this, ...arguments);
@@ -405,7 +406,7 @@ export default class AbstractCmi5 {
     duration?: Period,
     objective?: ObjectiveActivity
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     /* eslint-disable prefer-rest-params */
     // @ts-expect-error TS doesn't like spreading arguments
     const statement = Cmi5InteractionStatement(this, ...arguments);
@@ -435,7 +436,7 @@ export default class AbstractCmi5 {
       activityId: this._launchParameters.activityId,
       stateId: "LMS.LaunchData",
       registration: this._launchParameters.registration,
-    }) as AxiosPromise<LaunchData>);
+    }) as AdapterPromise<LaunchData>);
     return launchDataResponse.data;
   }
 
@@ -444,9 +445,9 @@ export default class AbstractCmi5 {
       const learnerPrefResponse = await (this._xapi.getAgentProfile({
         agent: this._launchParameters.actor,
         profileId: "cmi5LearnerPreferences",
-      }) as AxiosPromise<LearnerPreferences>);
+      }) as AdapterPromise<LearnerPreferences>);
       return learnerPrefResponse.data;
-    } catch (err) {
+    } catch {
       return {};
     }
   }
@@ -454,7 +455,7 @@ export default class AbstractCmi5 {
   public async sendXapiStatement(
     statement: Statement,
     options?: SendStatementOptions
-  ): AxiosPromise<string[]> {
+  ): AdapterPromise<string[]> {
     const sendStatement = _applyTransform(statement, options);
     return this._xapi.sendStatement({
       statement: sendStatement,
