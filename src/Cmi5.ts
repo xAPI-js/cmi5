@@ -1,16 +1,21 @@
 import XAPI from "@xapi/xapi";
 import { LaunchParameters } from "./interfaces";
 import AbstractCmi5 from "./AbstractCmi5";
+import { XAPIConfig } from "@xapi/xapi/dist/types/XAPIConfig";
 
 export * from "./interfaces";
 
 export default class Cmi5 extends AbstractCmi5 {
   private static _instance: Cmi5 | null = null;
 
-  constructor(
-    launchParameters: LaunchParameters = Cmi5.getLaunchParametersFromLMS()
-  ) {
-    super(launchParameters);
+  constructor(config?: {
+    launchParameters?: LaunchParameters;
+    xapiConfig?: Pick<XAPIConfig, "adapter" | "version">;
+  }) {
+    const launchParameters =
+      config?.launchParameters ?? Cmi5.getLaunchParametersFromLMS();
+    const xapiConfig = config?.xapiConfig ?? {};
+    super({ launchParameters, xapiConfig });
   }
 
   static get instance(): Cmi5 {

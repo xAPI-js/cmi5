@@ -43,6 +43,7 @@ import {
   Cmi5TerminateStatement,
 } from "./Cmi5Statements";
 import { AdapterPromise } from "@xapi/xapi/dist/types/adapters";
+import { XAPIConfig } from "@xapi/xapi/dist/types/XAPIConfig";
 
 export * from "./interfaces";
 
@@ -66,9 +67,14 @@ export default class AbstractCmi5 {
   private _initializedDate!: Date;
   private _authToken: string | null = null;
   private _xapi: XAPI;
+  private _xapiConfig: Pick<XAPIConfig, "adapter" | "version">;
 
-  constructor(launchParameters: LaunchParameters) {
-    this._launchParameters = launchParameters;
+  constructor(config: {
+    launchParameters: LaunchParameters;
+    xapiConfig: Pick<XAPIConfig, "adapter" | "version">;
+  }) {
+    this._launchParameters = config.launchParameters;
+    this._xapiConfig = config.xapiConfig;
     if (!this._launchParameters.fetch) {
       throw Error("Unable to construct, no `fetch` parameter found in URL.");
     } else if (!this._launchParameters.endpoint) {
@@ -139,6 +145,7 @@ export default class AbstractCmi5 {
       : await this.getAuthTokenFromLMS(this._launchParameters.fetch);
     this._authToken = authToken;
     this._xapi = new XAPI({
+      ...this._xapiConfig,
       endpoint: this._launchParameters.endpoint,
       auth: `Basic ${authToken}`,
     });
