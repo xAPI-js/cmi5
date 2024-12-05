@@ -1,5 +1,5 @@
-import { LaunchParameters } from "interfaces/LaunchParameters";
-import { LaunchData } from "interfaces/LaunchData";
+import { LaunchParameters } from "./LaunchParameters";
+import { LaunchData } from "./LaunchData";
 
 export interface LaunchContext {
   initializedDate: Date;
