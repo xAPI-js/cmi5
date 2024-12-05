@@ -50,6 +50,6 @@ export default class Cmi5 extends AbstractCmi5 {
   protected static getLaunchParametersFromLMS(): LaunchParameters {
     return XAPI.getSearchQueryParamsAsObject(
       window.location.search
-    ) as LaunchParameters;
+    ) as unknown as LaunchParameters;
   }
 }
