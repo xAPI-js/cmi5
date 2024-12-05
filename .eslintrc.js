@@ -28,5 +28,11 @@ module.exports = {
     "@typescript-eslint/ban-ts-ignore": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "@typescript-eslint/ban-types": ["off"],
+    "prettier/prettier": [
+      "error",
+      {
+        endOfLine: "auto",
+      },
+    ],
   },
 };
