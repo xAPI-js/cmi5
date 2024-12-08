@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ObjectiveActivity, Statement, Verb } from "@xapi/xapi";
 import MockDate from "mockdate";
 import Cmi5 from "../../src/Cmi5";
